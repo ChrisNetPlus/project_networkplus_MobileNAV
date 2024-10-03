@@ -1,0 +1,22 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "NWP_DEV",
+            "request": "launch",
+            "type": "al",
+            "environmentType": "Sandbox",
+            "environmentName": "NWP_DEV",
+            "server": "https://businesscentral.dynamics.com/",
+            "tenant": "bf9855e5-a08e-4682-a5c1-9a598d191e6b",
+            "startupObjectId": 22,
+            "startupObjectType": "Page",
+            "breakOnError": true,
+            "launchBrowser": true,
+            "enableLongRunningSqlStatements": true,
+            "enableSqlInformationDebugger": true,
+            "forceUpgrade": true,
+            "schemaUpdateMode": "ForceSync"
+        }
+    ]
+}

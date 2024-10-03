@@ -1,0 +1,85 @@
+{
+  "id": "c0992c87-ae61-460e-bc5f-277abf345707",
+  "name": "NP Mobile NAV",
+  "publisher": "Network Plus",
+  "version": "2.0.0.8",
+  "brief": "",
+  "description": "",
+  "privacyStatement": "",
+  "EULA": "",
+  "help": "",
+  "url": "",
+  "logo": "",
+  "dependencies": [
+    {
+      "id": "1c7a8786-a409-48a5-af6d-07078329e721",
+      "name": "NetworkPlusGeneralSaaS",
+      "version": "1.1.0.10",
+      "publisher": "Network Plus"
+    },
+    {
+      "id": "0edc72a6-fe76-46a8-822c-c42a28cb5fa5",
+      "name": "Construction Industry Scheme",
+      "version": "19.0.3.1",
+      "publisher": "MERCURIUS IT LTD"
+    },
+    {
+      "id": "f411b534-4a23-4ac8-be43-e85c4d2b8b9a",
+      "name": "Network Plus General",
+      "version": "1.4.2.21",
+      "publisher": "The NAV People"
+    },
+    {
+      "id": "3c9fe188-a199-4ad1-9e1d-a081e8e2cf0f",
+      "name": "Customer Vendor Search SaaS",
+      "version": "1.1.0.1",
+      "publisher": "Network Plus"
+    },
+    {
+      "id": "2c9fe188-a199-4ad1-9e1d-a061e8e2df0f",
+      "name": "Daily Tips",
+      "version": "2.1.0.1",
+      "publisher": "Network Plus"
+    },
+    {
+      "id": "1c7a8786-a409-49a5-af6d-07078329e721",
+      "name": "NetworkPlusApps",
+      "version": "2.0.0.1",
+      "publisher": "Network Plus"
+    },
+    {
+      "id": "2c9fe188-a199-6ad1-9e1d-a061e8e3df0f",
+      "name": "NP VAT Statement Fix",
+      "version": "2.0.0.3",
+      "publisher": "Network Plus"
+    },
+    {
+      "id": "d93e15de-5b31-4381-98db-af2ed8df21fd",
+      "name": "Netstock Integration",
+      "version": "19.0.0.49",
+      "publisher": "Dynamics Consultants Ltd."
+    },
+    {
+      "id": "fd09b53c-ff32-4d9c-91ce-6a82a87b8c9c",
+      "name": "MobileNAV",
+      "version": "10.0.0.73",
+      "publisher": "MULTISOFT KFT"
+    },
+    {
+      "id": "2c9fe188-a199-4ad1-9e1d-a081e8e2cf0e",
+      "name": "Dimension Combinations",
+      "version": "1.1.0.7",
+      "publisher": "Network Plus"
+    }
+  ],
+  "screenshots": [],
+  "platform": "18.0.0.0",
+  "application": "18.0.0.0",
+  "idRanges": [
+    {
+      "from": 50900,
+      "to": 50999
+    }
+  ],
+  "runtime": "12.0"
+}
