@@ -78,7 +78,7 @@ page 50909 "NP Stock Issue with SN"
         if DataTransSetup."NP Create Mobile Postings" = true then
             CreateItemJnl(Rec);
         Rec."Item No." := '';
-        Rec."Work / Job Reference" := '';
+        // Rec."Work / Job Reference" := '';
         Rec."First Serial No." := '';
         Rec.Quantity := 0;
         Rec."Contract Code" := '';
@@ -101,6 +101,7 @@ page 50909 "NP Stock Issue with SN"
         DataTransSetup: Record "NP Data Transfer Setup";
         Locations: Record Location;
         ReservEntry: Record "Reservation Entry";
+        DimManangement: Codeunit DimensionManagement;
         ResEntryNo: Integer;
         RecordCount: Decimal;
         DocNo: Text;
@@ -108,11 +109,13 @@ page 50909 "NP Stock Issue with SN"
         WkstrmCode: Code[20];
         NewSNo: Code[50];
         EntryNo: Integer;
+        DimSetEntryNo: Integer;
     begin
         IJL.Init();
         Clear(DocNo);
         Clear(ContCode);
         Clear(WkstrmCode);
+        Clear(DimSetEntryNo);
         IJBatch.Reset();
         IJBatch.SetRange("Journal Template Name", 'ITEM');
         IJBatch.SetRange(Name, MobItemJnl."Journal Batch Name");
@@ -160,13 +163,60 @@ page 50909 "NP Stock Issue with SN"
         DimValue.SetRange(Code, MobItemJnl.Gang);
         if DimValue.FindFirst() then begin
             DimSetEntry.Reset();
-            DimSetEntry."Dimension Value ID" := DimValue."Dimension Value ID";
-            DimSetEntry."Dimension Set ID" := IJL."Dimension Set ID";
-            DimSetEntry."Dimension Code" := 'GANG';
-            DimSetEntry."Dimension Value Code" := MobItemJnl.Gang;
-            DimSetEntry."Global Dimension No." := 3;
-            if not DimSetEntry.Insert(false) then
-                DimSetEntry.Modify(false);
+            DimSetEntry.SetRange("Dimension Set ID", IJL."Dimension Set ID");
+            DimSetEntry.SetRange("Dimension Code", 'GANG');
+            DimSetEntry.SetRange("Dimension Value Code", MobItemJnl.Gang);
+            if not DimSetEntry.FindFirst() then begin
+                DimSetEntry."Dimension Value ID" := DimValue."Dimension Value ID";
+                DimSetEntry."Dimension Set ID" := IJL."Dimension Set ID";
+                DimSetEntry."Dimension Code" := 'GANG';
+                DimSetEntry."Dimension Value Code" := MobItemJnl.Gang;
+                DimSetEntry."Global Dimension No." := 3;
+                if not DimSetEntry.Insert(false) then
+                    DimSetEntry.Modify(false);
+            end else begin
+                DimSetEntry.Reset();
+                DimSetEntry.FindLast();
+                DimSetEntryNo := DimSetEntry."Dimension Set ID" + 1;
+                IJL."Dimension Set ID" := DimSetEntryNo;
+                //Add Contract
+                DimValue.Reset();
+                DimValue.SetRange("Dimension Code", 'CONTRACT');
+                DimValue.SetRange(Code, MobItemJnl."Contract Code");
+                if DimValue.FindFirst() then begin
+                    DimSetEntry.Reset();
+                    DimSetEntry."Dimension Value ID" := DimValue."Dimension Value ID";
+                    DimSetEntry."Dimension Set ID" := DimSetEntryNo;
+                    DimSetEntry."Dimension Code" := 'CONTRACT';
+                    DimSetEntry."Dimension Value Code" := MobItemJnl."Contract Code";
+                    DimSetEntry."Global Dimension No." := 1;
+                    DimSetEntry.Insert(false);
+                end;
+                //Add Workstream
+                DimValue.Reset();
+                DimValue.SetRange("Dimension Code", 'WORKSTREAM');
+                DimValue.SetRange(Code, MobItemJnl."Workstream Code");
+                if DimValue.FindFirst() then begin
+                    DimSetEntry."Dimension Value ID" := DimValue."Dimension Value ID";
+                    DimSetEntry."Dimension Set ID" := DimSetEntryNo;
+                    DimSetEntry."Dimension Code" := 'WORKSTREAM';
+                    DimSetEntry."Dimension Value Code" := MobItemJnl."Workstream Code";
+                    DimSetEntry."Global Dimension No." := 2;
+                    DimSetEntry.Insert(false);
+                end;
+                //Add Gang
+                DimValue.Reset();
+                DimValue.SetRange("Dimension Code", 'GANG');
+                DimValue.SetRange(Code, MobItemJnl.Gang);
+                if DimValue.FindFirst() then begin
+                    DimSetEntry."Dimension Value ID" := DimValue."Dimension Value ID";
+                    DimSetEntry."Dimension Set ID" := DimSetEntryNo;
+                    DimSetEntry."Dimension Code" := 'GANG';
+                    DimSetEntry."Dimension Value Code" := MobItemJnl.Gang;
+                    DimSetEntry."Global Dimension No." := 3;
+                    DimSetEntry.Insert(false);
+                end;
+            end;
         end;
         IJL.Modify(false);
         Commit();
