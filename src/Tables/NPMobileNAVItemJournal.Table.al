@@ -81,6 +81,11 @@ table 50902 "NP Mobile NAV Item Journal"
             Caption = 'User ID';
             DataClassification = SystemMetadata;
         }
+        field(17; "Return Reason"; Code[10])
+        {
+            Caption = 'Return Reason';
+            DataClassification = SystemMetadata;
+        }
     }
     keys
     {

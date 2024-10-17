@@ -141,13 +141,13 @@ page 50909 "NP Stock Issue with SN"
         IJL.SetRange("Journal Batch Name", MobItemJnl."Journal Batch Name");
         if IJL.FindLast() then begin
             EntryNo := IJL."Line No." + 10000;
-            DimSetEntryNo := IJL."Dimension Set ID" + 1;
+            // DimSetEntryNo := IJL."Dimension Set ID" + 1;
         end else begin
             EntryNo := 10000;
-            DimSetEntry.Reset();
-            DimSetEntry.FindLast();
-            DimSetEntryNo := DimSetEntry."Dimension Set ID" + 1;
         end;
+        DimSetEntry.Reset();
+        DimSetEntry.FindLast();
+        DimSetEntryNo := DimSetEntry."Dimension Set ID" + 1;
         IJL.Init();
         IJL."Journal Template Name" := MobItemJnl."Journal Template Name";
         IJL."Journal Batch Name" := MobItemJnl."Journal Batch Name";
@@ -180,7 +180,8 @@ page 50909 "NP Stock Issue with SN"
                 DimSetEntry."Dimension Code" := 'CONTRACT';
                 DimSetEntry."Dimension Value Code" := MobItemJnl."Contract Code";
                 DimSetEntry."Global Dimension No." := 1;
-                DimSetEntry.Insert(false);
+                if not DimSetEntry.Insert(false) then
+                    DimSetEntry.Modify(false);
             end;
             //Add Workstream
             DimValue.Reset();
@@ -192,7 +193,8 @@ page 50909 "NP Stock Issue with SN"
                 DimSetEntry."Dimension Code" := 'WORKSTREAM';
                 DimSetEntry."Dimension Value Code" := MobItemJnl."Workstream Code";
                 DimSetEntry."Global Dimension No." := 2;
-                DimSetEntry.Insert(false);
+                if not DimSetEntry.Insert(false) then
+                    DimSetEntry.Modify(false);
             end;
             //Add Gang
             DimValue.Reset();
@@ -204,7 +206,8 @@ page 50909 "NP Stock Issue with SN"
                 DimSetEntry."Dimension Code" := 'GANG';
                 DimSetEntry."Dimension Value Code" := MobItemJnl.Gang;
                 DimSetEntry."Global Dimension No." := 3;
-                DimSetEntry.Insert(false);
+                if not DimSetEntry.Insert(false) then
+                    DimSetEntry.Modify(false);
             end;
         end;
 
