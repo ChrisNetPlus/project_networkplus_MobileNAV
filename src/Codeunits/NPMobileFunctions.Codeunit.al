@@ -5,6 +5,7 @@ codeunit 50909 "NP MobileFunctions"
         SelectFile: Label 'Select File to upload';
         Complete: Label 'Import Completed';
         Rec_ExcelBuffer: Record "Excel Buffer";
+        TempExcelBuffer: Record "Excel Buffer" temporary;
         EmployeeContracts: Record "NP Employee Contracts";
         Rows: Integer;
         Columns: Integer;
@@ -25,13 +26,19 @@ codeunit 50909 "NP MobileFunctions"
         UploadResult := UploadIntoStream(DialogCaption, '', '', Name, NVInStream);
         If Name = '' then exit;
         SheetName := 'Upload';
+        TempExcelBuffer.OpenBookStream(NVInStream, SheetName);
+        TempExcelBuffer.ReadSheet();
+        TempExcelBuffer.SetRange("Column No.", 1);
+        TempExcelBuffer.FindLast();
+        Rows := TempExcelBuffer."Row No.";
+        TempExcelBuffer.Reset();
         Rec_ExcelBuffer.Reset();
         if Rec_ExcelBuffer.FindSet() then
             Rec_ExcelBuffer.DeleteAll();
         Rec_ExcelBuffer.OpenBookStream(NVInStream, SheetName);
         Rec_ExcelBuffer.ReadSheet();
         Commit();
-        Rows := Rec_ExcelBuffer.Count;
+        // Rows := Rec_ExcelBuffer.Count;
         OrderCount := 0;
         for RowNo := 2 to Rows do begin
             Window.Open('##1###################');
@@ -46,14 +53,14 @@ codeunit 50909 "NP MobileFunctions"
             if GetValueAtIndex(RowNo, 3) <> '' then begin
                 EmployeeContracts."Last Name" := GetValueAtIndex(RowNo, 3);
             end;
-            if GetValueAtIndex(RowNo, 4) <> '' then begin
-                EmployeeContracts."Contract Code" := GetValueAtIndex(RowNo, 4);
-            End;
             if GetValueAtIndex(RowNo, 5) <> '' then begin
-                EmployeeContracts."Workstream Code" := GetValueAtIndex(RowNo, 5);
+                EmployeeContracts."Contract Code" := GetValueAtIndex(RowNo, 5);
+            End;
+            if GetValueAtIndex(RowNo, 7) <> '' then begin
+                EmployeeContracts."Workstream Code" := GetValueAtIndex(RowNo, 7);
             end;
-            if GetValueAtIndex(RowNo, 6) <> '' then begin
-                EmployeeContracts."Gang Code" := GetValueAtIndex(RowNo, 6);
+            if GetValueAtIndex(RowNo, 8) <> '' then begin
+                EmployeeContracts."Gang Code" := GetValueAtIndex(RowNo, 8);
             end;
             if not EmployeeContracts.Insert(false) then
                 EmployeeContracts.Modify(false);
