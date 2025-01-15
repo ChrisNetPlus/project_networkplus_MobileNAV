@@ -108,17 +108,20 @@ codeunit 50909 "NP MobileFunctions"
         DataTransSetup: Record "NP Data Transfer Setup";
         Locations: Record Location;
         ReservEntry: Record "Reservation Entry";
+        DimMgmnt: Codeunit DimensionManagement;
         ResEntryNo: Integer;
         RecordCount: Decimal;
         DocNo: Text;
         ContCode: Code[20];
         WkstrmCode: Code[20];
         NewSNo: Code[50];
+        DimSetID: Integer;
     begin
         IJL.Init();
         Clear(DocNo);
         Clear(ContCode);
         Clear(WkstrmCode);
+        Clear(DimSetID);
         IJBatch.Reset();
         IJBatch.SetRange("Journal Template Name", 'ITEM');
         IJBatch.SetRange(Name, MobItemJnl."Journal Batch Name");
@@ -152,13 +155,17 @@ codeunit 50909 "NP MobileFunctions"
         IJL.Validate("Shortcut Dimension 2 Code", MobItemJnl."Workstream Code");
         IJL.Insert(false);
         Commit();
+        DimSetEntry.Reset();
+        DimSetEntry.SetRange("Dimension Set ID", IJL."Dimension Set ID");
+        if DimSetEntry.FindFirst() then
+            DimSetID := DimMgmnt.GetDimensionSetID(DimSetEntry);
         DimValue.Reset();
         DimValue.SetRange("Dimension Code", 'GANG');
         DimValue.SetRange(Code, MobItemJnl.Gang);
         if DimValue.FindFirst() then begin
-            DimSetEntry.Reset();
+            DimSetEntry.Init();
             DimSetEntry."Dimension Value ID" := DimValue."Dimension Value ID";
-            DimSetEntry."Dimension Set ID" := IJL."Dimension Set ID";
+            DimSetEntry."Dimension Set ID" := DimSetID;
             DimSetEntry."Dimension Code" := 'GANG';
             DimSetEntry."Dimension Value Code" := MobItemJnl.Gang;
             DimSetEntry."Global Dimension No." := 3;
