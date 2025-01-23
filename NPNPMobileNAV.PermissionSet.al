@@ -16,5 +16,6 @@ permissionset 50900 "NP NP_Mobile_NAV"
         codeunit "NP MobileFunctions" = X,
         page "NP Employee Contracts" = X,
         page "NP Stock Issue by Gang" = X,
-        page "NP Stock Issue New" = X;
+        page "NP Stock Issue New" = X,
+        page "NP Employee Contract API" = X;
 }

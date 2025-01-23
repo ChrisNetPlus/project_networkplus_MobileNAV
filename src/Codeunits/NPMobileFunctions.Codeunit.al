@@ -1,5 +1,6 @@
 codeunit 50909 "NP MobileFunctions"
 {
+    Permissions = tabledata "Dimension Set Entry" = RIM, tabledata "Reservation Entry" = RIMD, tabledata "NP Mobile NAV Item Journal" = RIMD;
     procedure ImportEmployeeContracts()
     var
         SelectFile: Label 'Select File to upload';
@@ -104,6 +105,7 @@ codeunit 50909 "NP MobileFunctions"
         IJBatch: Record "Item Journal Batch";
         NoSeries: Record "No. Series Line";
         DimSetEntry: Record "Dimension Set Entry";
+        TempDimSetEntry: Record "Dimension Set Entry" temporary;
         DimValue: Record "Dimension Value";
         DataTransSetup: Record "NP Data Transfer Setup";
         Locations: Record Location;
@@ -115,7 +117,9 @@ codeunit 50909 "NP MobileFunctions"
         ContCode: Code[20];
         WkstrmCode: Code[20];
         NewSNo: Code[50];
+        EntryNo: Integer;
         DimSetID: Integer;
+
     begin
         IJL.Init();
         Clear(DocNo);
@@ -141,9 +145,16 @@ codeunit 50909 "NP MobileFunctions"
             ContCode := Locations."NP Default Contract Code";
             WkstrmCode := Locations."NP Default Workstream Code";
         end;
+        IJL.Reset();
+        IJL.SetRange("Journal Template Name", 'ITEM');
+        IJL.SetRange("Journal Batch Name", MobItemJnl."Journal Batch Name");
+        if IJL.FindLast() then
+            EntryNo := IJL."Line No." + 10000
+        else
+            EntryNo := 10000;
         IJL."Journal Template Name" := MobItemJnl."Journal Template Name";
         IJL."Journal Batch Name" := MobItemJnl."Journal Batch Name";
-        IJL."Line No." := MobItemJnl."Entry No.";
+        IJL."Line No." := EntryNo;
         IJL."Posting Date" := Today;
         IJL."Document No." := DocNo;
         IJL."Entry Type" := IJL."Entry Type"::Sale;
@@ -151,29 +162,59 @@ codeunit 50909 "NP MobileFunctions"
         IJL.Validate("Location Code", MobItemJnl.Depot);
         IJL.Validate(Quantity, MobItemJnl.Quantity);
         IJL."NP Work / Job Ref." := MobItemJnl."Work / Job Reference";
-        IJL.Validate("Shortcut Dimension 1 Code", MobItemJnl."Contract Code");
-        IJL.Validate("Shortcut Dimension 2 Code", MobItemJnl."Workstream Code");
+        // IJL.Validate("Shortcut Dimension 1 Code", MobItemJnl."Contract Code");
+        // IJL.Validate("Shortcut Dimension 2 Code", MobItemJnl."Workstream Code");
         IJL.Insert(false);
         Commit();
+        TempDimSetEntry.DeleteAll(false);
+        TempDimSetEntry.Init();
+        TempDimSetEntry.Validate("Dimension Code", 'CONTRACT');
+        TempDimSetEntry.Validate("Dimension Value Code", MobItemJnl."Contract Code");
+        TempDimSetEntry.Insert(false);
+        TempDimSetEntry.Init();
+        TempDimSetEntry.Validate("Dimension Code", 'WORKSTREAM');
+        TempDimSetEntry.Validate("Dimension Value Code", MobItemJnl."Workstream Code");
+        TempDimSetEntry.Insert(false);
+        TempDimSetEntry.Init();
+        TempDimSetEntry.Validate("Dimension Code", 'GANG');
+        TempDimSetEntry.Validate("Dimension Value Code", MobItemJnl.Gang);
+        TempDimSetEntry.Insert(false);
+        DimSetID := DimMgmnt.GetDimensionSetID(TempDimSetEntry);
         DimSetEntry.Reset();
-        DimSetEntry.SetRange("Dimension Set ID", IJL."Dimension Set ID");
-        if DimSetEntry.FindFirst() then
-            DimSetID := DimMgmnt.GetDimensionSetID(DimSetEntry);
-        DimValue.Reset();
-        DimValue.SetRange("Dimension Code", 'GANG');
-        DimValue.SetRange(Code, MobItemJnl.Gang);
-        if DimValue.FindFirst() then begin
-            DimSetEntry.Init();
-            DimSetEntry."Dimension Value ID" := DimValue."Dimension Value ID";
-            DimSetEntry."Dimension Set ID" := DimSetID;
-            DimSetEntry."Dimension Code" := 'GANG';
-            DimSetEntry."Dimension Value Code" := MobItemJnl.Gang;
-            DimSetEntry."Global Dimension No." := 3;
-            if not DimSetEntry.Insert(false) then
-                DimSetEntry.Modify(false);
+        DimSetEntry.SetRange("Dimension Set ID", DimSetID);
+        if not DimSetEntry.FindSet() then begin
+            TempDimSetEntry.Reset();
+            if TempDimSetEntry.FindSet() then
+                repeat
+                    DimSetEntry.Init();
+                    DimSetEntry.Validate("Dimension Set ID", DimSetID);
+                    DimSetEntry.Validate("Dimension Code", TempDimSetEntry."Dimension Code");
+                    DimSetEntry.Validate("Dimension Value Code", TempDimSetEntry."Dimension Value Code");
+                    DimSetEntry.Insert(false);
+                until TempDimSetEntry.Next() = 0;
         end;
-        IJL.Modify(false);
+        // DimValue.Reset();
+        // DimValue.SetRange("Dimension Code", 'GANG');
+        // DimValue.SetRange(Code, MobItemJnl.Gang);
+        // if DimValue.FindFirst() then begin
+        //     DimSetEntry.Init();
+        //     DimSetEntry."Dimension Value ID" := DimValue."Dimension Value ID";
+        //     DimSetEntry."Dimension Set ID" := DimSetID;
+        //     DimSetEntry."Dimension Code" := 'GANG';
+        //     DimSetEntry."Dimension Value Code" := MobItemJnl.Gang;
+        //     DimSetEntry."Global Dimension No." := 3;
+        //     if not DimSetEntry.Insert(false) then
+        //         DimSetEntry.Modify(false);
+        // end;
+        if DimSetID <> 0 then begin
+            IJL.Validate("Dimension Set ID", DimSetID);
+            IJL.Modify(false);
+            Commit();
+        end;
         Commit();
+        TempDimSetEntry.Reset();
+        TempDimSetEntry.DeleteAll();
+        //Add Serial Number
         if MobItemJnl."First Serial No." <> '0' then begin
             Clear(NewSNo);
             RecordCount := 0;
@@ -195,7 +236,7 @@ codeunit 50909 "NP MobileFunctions"
                 ReservEntry."Reservation Status" := ReservEntry."Reservation Status"::Prospect;
                 ReservEntry."Source Type" := Database::"Item Journal Line";
                 ReservEntry."Source Batch Name" := MobItemJnl."Journal Batch Name";
-                ReservEntry."Source Ref. No." := MobItemJnl."Entry No.";
+                ReservEntry."Source Ref. No." := EntryNo;
                 ReservEntry.Insert(false);
                 Commit();
             end else
@@ -214,7 +255,7 @@ codeunit 50909 "NP MobileFunctions"
                     ReservEntry."Reservation Status" := ReservEntry."Reservation Status"::Prospect;
                     ReservEntry."Source Type" := Database::"Item Journal Line";
                     ReservEntry."Source Batch Name" := MobItemJnl."Journal Batch Name";
-                    ReservEntry."Source Ref. No." := MobItemJnl."Entry No.";
+                    ReservEntry."Source Ref. No." := EntryNo;
                     ReservEntry."Serial No." := NewSNo;
                     ReservEntry.Insert(false);
                     Commit();
@@ -234,16 +275,17 @@ codeunit 50909 "NP MobileFunctions"
                         ReservEntry."Reservation Status" := ReservEntry."Reservation Status"::Prospect;
                         ReservEntry."Source Type" := Database::"Item Journal Line";
                         ReservEntry."Source Batch Name" := MobItemJnl."Journal Batch Name";
-                        ReservEntry."Source Ref. No." := MobItemJnl."Entry No.";
+                        ReservEntry."Source Ref. No." := EntryNo;
                         ReservEntry."Serial No." := NewSNo;
                         ReservEntry.Insert(false);
                         Commit();
                     until RecordCount = (MobItemJnl.Quantity - 1);
                 end;
         end;
-        MobItemJnl."Jnl Created" := true;
-        MobItemJnl.Modify(false);
         Commit();
+        // MobItemJnl."Jnl Created" := true;
+        // MobItemJnl.Modify(false);
+        // Commit();
         DataTransSetup.Get();
         if DataTransSetup."NP Post Mobile Jnl" = true then
             PostJournal(IJL);

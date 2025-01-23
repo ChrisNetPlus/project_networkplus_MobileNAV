@@ -58,6 +58,7 @@ page 50909 "NP Stock Issue with SN"
         DataTransSetup: Record "NP Data Transfer Setup";
         EmployeeContracts: Record "NP Employee Contracts";
         UserSetup: Record "User Setup";
+        MobFunctions: Codeunit "NP MobileFunctions";
     begin
         Rec."Journal Template Name" := 'ITEM';
         EmployeeContracts.Reset();
@@ -76,7 +77,7 @@ page 50909 "NP Stock Issue with SN"
         Commit();
         DataTransSetup.Get();
         if DataTransSetup."NP Create Mobile Postings" = true then
-            CreateItemJnl(Rec);
+            MobFunctions.CreateItemJnl(Rec);
         Rec."Item No." := '';
         // Rec."Work / Job Reference" := '';
         Rec."First Serial No." := '';
@@ -87,7 +88,9 @@ page 50909 "NP Stock Issue with SN"
         Rec."Journal Template Name" := '';
         Rec."Journal Batch Name" := '';
         Rec.Depot := '';
+        Rec."Jnl Created" := true;
         Rec.Modify(false);
+        Commit();
         MobileNAVObjectFunctions.RefreshCurrent(FieldControl);
     end;
 
@@ -145,9 +148,9 @@ page 50909 "NP Stock Issue with SN"
         end else begin
             EntryNo := 10000;
         end;
-        DimSetEntry.Reset();
-        DimSetEntry.FindLast();
-        DimSetEntryNo := DimSetEntry."Dimension Set ID" + 1;
+        // DimSetEntry.Reset();
+        // DimSetEntry.FindLast();
+        // DimSetEntryNo := DimSetEntry."Dimension Set ID" + 1;
         IJL.Init();
         IJL."Journal Template Name" := MobItemJnl."Journal Template Name";
         IJL."Journal Batch Name" := MobItemJnl."Journal Batch Name";
@@ -160,8 +163,8 @@ page 50909 "NP Stock Issue with SN"
         IJL.Validate(Quantity, MobItemJnl.Quantity);
         IJL."Dimension Set ID" := DimSetEntryNo;
         IJL."NP Work / Job Ref." := MobItemJnl."Work / Job Reference";
-        IJL."Shortcut Dimension 1 Code" := MobItemJnl."Contract Code";
-        IJL."Shortcut Dimension 2 Code" := MobItemJnl."Workstream Code";
+        // IJL."Shortcut Dimension 1 Code" := MobItemJnl."Contract Code";
+        // IJL."Shortcut Dimension 2 Code" := MobItemJnl."Workstream Code";
         IJL.Insert(false);
         Commit();
         DimValue.Reset();

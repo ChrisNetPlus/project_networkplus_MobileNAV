@@ -15,7 +15,7 @@ table 50902 "NP Mobile NAV Item Journal"
             Caption = 'Depot';
             DataClassification = SystemMetadata;
         }
-        field(3; "Item No."; Code[50])
+        field(3; "Item No."; Code[20])
         {
             Caption = 'Item No.';
             DataClassification = SystemMetadata;
